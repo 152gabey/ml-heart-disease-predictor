@@ -67,7 +67,7 @@ def load_data():
     # Replace all NaN fields with the average value of that column
     df['bmi'] = df['bmi'].fillna(df['bmi'].mean())
 
-    # evidence = df.drop(columns='stroke')
+    evidence = df.drop(columns='stroke')
     labels = df['stroke']
     return (evidence, labels)
 

@@ -1,8 +1,8 @@
 import sys
 import pandas as pd
+import tensorflow.keras as tf
 
 from sklearn.model_selection import train_test_split
-from sklearn.neighbors import KNeighborsClassifier
 
 TEST_SIZE = 0.4
 K_VAL = 1
@@ -15,20 +15,15 @@ def main():
 
     # Load data from spreadsheet and split into train and test sets
     evidence, labels = load_data()
+    print(evidence.shape, labels.shape)
     X_train, X_test, y_train, y_test = train_test_split(
         evidence, labels, test_size=TEST_SIZE
     )
 
     # Train model and make predictions
-    model = train_model(X_train, y_train)
-    predictions = model.predict(X_test)
-    sensitivity, specificity = evaluate(y_test, predictions)
-
-    # Print results
-    print(f"Correct: {(y_test == predictions).sum()}")
-    print(f"Incorrect: {(y_test != predictions).sum()}")
-    print(f"True Positive Rate: {100 * sensitivity:.2f}%")
-    print(f"True Negative Rate: {100 * specificity:.2f}%")
+    model = create_model()
+    model.fit(X_train, y_train, epochs=20)
+    model.evaluate(X_test, y_test, verbose=2)
 
 def load_data():
     """
@@ -69,48 +64,23 @@ def load_data():
 
     evidence = df.drop(columns='stroke')
     labels = df['stroke']
-    return (evidence, labels)
+    return evidence, labels
 
-def train_model(evidence, labels):
+def create_model():
     """
-    Given a list of evidence lists and a list of labels, return a
-    fitted k-nearest neighbor model (k=1) trained on the data.
+    Costructs a neural network with an 8 unit hidden layer
+    outputs a value between 0 and 1 to determine stroke
     """
-    model = KNeighborsClassifier(n_neighbors=K_VAL)
-    X_training, X_testing, y_training, y_testing = train_test_split(evidence, labels, test_size=TEST_SIZE)
-    model.fit(X_training, y_training)
+    model = tf.models.Sequential()
+    model.add(tf.layers.Dense(8, input_shape=(15,), activation="relu"))
+    model.add(tf.layers.Dense(1, activation="sigmoid"))
+
+    model.compile(
+        optimizer="adam",
+        loss="binary_crossentropy",
+        metrics=["accuracy"]
+    )
     return model
-
-
-def evaluate(labels, predictions):
-    """
-    Given a list of actual labels and a list of predicted labels,
-    return a tuple (sensitivity, specificity).
-
-    Assume each label is either a 1 (positive) or 0 (negative).
-
-    `sensitivity` should be a floating-point value from 0 to 1
-    representing the "true positive rate": the proportion of
-    actual positive labels that were accurately identified.
-
-    `specificity` should be a floating-point value from 0 to 1
-    representing the "true negative rate": the proportion of
-    actual negative labels that were accurately identified.
-    """
-    sensitivity = 0
-    specificity = 0
-    total_positive = 0
-    total_negative = 0
-    for actual, predicted in zip(labels, predictions):
-        if actual == 1:
-            total_positive += 1
-            if actual == predicted:
-                sensitivity += 1
-        else:
-            total_negative += 1
-            if actual == predicted:
-                specificity += 1
-    return (sensitivity/total_positive , specificity/total_negative)
 
 if __name__ == "__main__":
     main()

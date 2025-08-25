@@ -15,7 +15,6 @@ def main():
 
     # Load data from spreadsheet and split into train and test sets
     evidence, labels = load_data()
-    print(evidence.shape, labels.shape)
     X_train, X_test, y_train, y_test = train_test_split(
         evidence, labels, test_size=TEST_SIZE
     )
@@ -42,10 +41,9 @@ def load_data():
         - avg_glucose_level: average glucose level in blood in float form
         - bmi: body mass index in float form. values with NaN are replaced with the mean bmi
         - smoking_status: Split into the following multi-column attributes: "formerly smoked", "never smoked", "smokes" or "Unknown"
-        - stroke: 1 if the patient had a stroke or 0 if not
 
     labels should be the corresponding list of labels, where each label
-    is 1 if Revenue is true, and 0 otherwise.
+    is 1 if patient has a stroke, and 0 otherwise.
     """
     df = pd.read_csv("healthcare-dataset-stroke-data.csv")
     # Remove columns not useful for prediction
